@@ -28,6 +28,7 @@ Vue.component('dashboard', require('./components/Dashboard.vue').default);
 
 //Services
 Vue.component('contact', require('./components/services/contact').default);
+Vue.component('profile', require('./components/services/Profile').default);
 
 
 /**

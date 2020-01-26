@@ -72,7 +72,9 @@
             v-model="left"
             fixed
             temporary
+            style="width: 250px"
         >
+            <profile :user="user"></profile>
         </v-navigation-drawer>
 
         <v-content>

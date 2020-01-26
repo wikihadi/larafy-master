@@ -7,14 +7,15 @@ use Illuminate\Http\Request;
 
 class ContactController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function read()
     {
-        //
+        return Contact::all();
     }
 
     /**
@@ -22,9 +23,11 @@ class ContactController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
-    {
-        //
+    public function add(Request $request){
+        $contact = Contact::create($request->all());
+
+        $contact = Contact::all();
+        return $contact;
     }
 
     /**

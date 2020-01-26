@@ -2266,30 +2266,163 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: ['user'],
   name: "contact",
   data: function data() {
     return {
+      csrf: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+      valid: false,
       more: false,
-      items: [{
-        text: 'هادی رفیعی',
-        tel: '406'
-      }],
+      items: [],
       tabs: null,
       search: '',
       addDialog: false,
       confirmDialog: false,
-      name: '',
       nameRules: [function (v) {
         return !!v || 'نام ضروری است';
       }],
-      email: '',
       emailRules: [function (v) {
         return !!v || 'ایمیل ضروری است';
       }, function (v) {
         return /.+@.+/.test(v) || 'ایمیل صحیح وارد کنید';
       }],
+      show: false,
+      name: '',
+      email: '',
       organization: '',
       mobile: '',
       tel: '',
@@ -2298,24 +2431,78 @@ __webpack_require__.r(__webpack_exports__);
       web: '',
       address: '',
       note: '',
-      show: false
+      snackbar: false,
+      text: 'با موفقیت ثبت شد',
+      timeout: 3000,
+      keyword: ''
     };
   },
-  watch: {
-    menu: function menu(val) {
+  methods: {
+    read: function read() {
       var _this = this;
 
-      val && setTimeout(function () {
-        return _this.$refs.picker.activePicker = 'YEAR';
+      axios.get('/api/contact/read').then(function (response) {
+        return _this.items = response.data;
+      })["catch"](function (error) {
+        console.log(error);
+      });
+    },
+    reset: function reset() {
+      this.name = '';
+      this.email = '';
+      this.organization = '';
+      this.mobile = '';
+      this.tel = '';
+      this.intercom = '';
+      this.date = '';
+      this.web = '';
+      this.address = '';
+      this.note = '';
+    },
+    addContact: function addContact(e) {
+      var _this2 = this;
+
+      e.preventDefault();
+      var currentObj = this;
+      var config = {
+        headers: {
+          'content-type': 'multipart/form-data'
+        }
+      };
+      var formData = new FormData();
+      formData.append('name', this.name);
+      formData.append('_token', this.csrf);
+      formData.append('email', this.email);
+      formData.append('organization', this.organization);
+      formData.append('tel', this.tel);
+      formData.append('mobile', this.mobile);
+      formData.append('intercom', this.intercom);
+      formData.append('dob', this.date);
+      formData.append('web', this.web);
+      formData.append('address', this.address);
+      formData.append('note', this.note);
+      formData.append('user_id', this.user.id);
+      axios.post('/api/contact/add', formData, config).then(function (response) {
+        return _this2.items = response.data;
+      }, this.snackbar = true, this.reset(), this.addDialog = false)["catch"](function (error) {
+        console.log(error);
       });
     }
   },
-  methods: {
-    save: function save(date) {
-      this.$refs.menu.save(date);
-    }
+  mounted: function mounted() {
+    this.read();
   },
-  mounted: function mounted() {}
+  computed: {
+    filteredList: function filteredList() {
+      var _this3 = this;
+
+      return this.items.filter(function (intercom) {
+        return _this3.keyword.toLowerCase().split(' ').every(function (v) {
+          return intercom.name.toLowerCase().includes(v);
+        });
+      });
+    }
+  }
 });
 
 /***/ }),
@@ -56651,7 +56838,7 @@ var render = function() {
             expression: "right"
           }
         },
-        [_c("contact", { attrs: { user: "" } })],
+        [_c("contact", { attrs: { user: _vm.user } })],
         1
       ),
       _vm._v(" "),
@@ -56724,11 +56911,11 @@ var render = function() {
                       dense: ""
                     },
                     model: {
-                      value: _vm.search,
+                      value: _vm.keyword,
                       callback: function($$v) {
-                        _vm.search = $$v
+                        _vm.keyword = $$v
                       },
-                      expression: "search"
+                      expression: "keyword"
                     }
                   })
                 ],
@@ -56759,30 +56946,439 @@ var render = function() {
                             expression: "item"
                           }
                         },
-                        _vm._l(_vm.items, function(item, i) {
+                        _vm._l(_vm.filteredList, function(item, i) {
                           return _c(
-                            "v-list-item",
-                            { key: i },
-                            [
-                              _c(
-                                "v-list-item-content",
+                            "v-dialog",
+                            {
+                              key: i,
+                              attrs: { width: "500" },
+                              scopedSlots: _vm._u(
                                 [
-                                  _c("v-list-item-title", {
-                                    domProps: { textContent: _vm._s(item.text) }
-                                  })
+                                  {
+                                    key: "activator",
+                                    fn: function(ref) {
+                                      var on = ref.on
+                                      return [
+                                        _c(
+                                          "v-list-item",
+                                          _vm._g(
+                                            { attrs: { clickable: "" } },
+                                            on
+                                          ),
+                                          [
+                                            _c("v-text", [
+                                              _vm._v(
+                                                "\n                                    " +
+                                                  _vm._s(item.name) +
+                                                  "\n                                "
+                                              )
+                                            ]),
+                                            _vm._v(" "),
+                                            _c("v-spacer"),
+                                            _vm._v(" "),
+                                            _c("v-chip", [
+                                              _vm._v(
+                                                "\n                                    " +
+                                                  _vm._s(item.intercom) +
+                                                  "\n                                "
+                                              )
+                                            ])
+                                          ],
+                                          1
+                                        )
+                                      ]
+                                    }
+                                  }
+                                ],
+                                null,
+                                true
+                              ),
+                              model: {
+                                value: _vm.dialog,
+                                callback: function($$v) {
+                                  _vm.dialog = $$v
+                                },
+                                expression: "dialog"
+                              }
+                            },
+                            [
+                              _vm._v(" "),
+                              _c(
+                                "v-card",
+                                [
+                                  _c(
+                                    "v-card-text",
+                                    [
+                                      _c(
+                                        "v-list",
+                                        { attrs: { rounded: "" } },
+                                        [
+                                          _c("v-subheader", [
+                                            _vm._v(_vm._s(item.name))
+                                          ]),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-list-item-group",
+                                            { attrs: { color: "primary" } },
+                                            [
+                                              item.note !== null
+                                                ? _c(
+                                                    "v-list-item",
+                                                    {
+                                                      attrs: {
+                                                        title: item.note
+                                                      }
+                                                    },
+                                                    [
+                                                      _c(
+                                                        "v-list-item-content",
+                                                        [
+                                                          _c(
+                                                            "v-list-item-title",
+                                                            {
+                                                              domProps: {
+                                                                textContent: _vm._s(
+                                                                  item.note
+                                                                )
+                                                              }
+                                                            }
+                                                          )
+                                                        ],
+                                                        1
+                                                      )
+                                                    ],
+                                                    1
+                                                  )
+                                                : _vm._e(),
+                                              _vm._v(" "),
+                                              item.organization !== null
+                                                ? _c(
+                                                    "v-list-item",
+                                                    [
+                                                      _c(
+                                                        "v-list-item-icon",
+                                                        [
+                                                          _c("v-icon", [
+                                                            _vm._v(
+                                                              "mdi-account-tie"
+                                                            )
+                                                          ])
+                                                        ],
+                                                        1
+                                                      ),
+                                                      _vm._v(" "),
+                                                      _c(
+                                                        "v-list-item-content",
+                                                        [
+                                                          _c(
+                                                            "v-list-item-title",
+                                                            {
+                                                              domProps: {
+                                                                textContent: _vm._s(
+                                                                  item.organization
+                                                                )
+                                                              }
+                                                            }
+                                                          )
+                                                        ],
+                                                        1
+                                                      )
+                                                    ],
+                                                    1
+                                                  )
+                                                : _vm._e(),
+                                              _vm._v(" "),
+                                              item.intercom !== null
+                                                ? _c(
+                                                    "v-list-item",
+                                                    [
+                                                      _c(
+                                                        "v-list-item-icon",
+                                                        [
+                                                          _c("v-icon", [
+                                                            _vm._v(
+                                                              "mdi-phone-voip"
+                                                            )
+                                                          ])
+                                                        ],
+                                                        1
+                                                      ),
+                                                      _vm._v(" "),
+                                                      _c(
+                                                        "v-list-item-content",
+                                                        [
+                                                          _c(
+                                                            "v-list-item-title",
+                                                            {
+                                                              domProps: {
+                                                                textContent: _vm._s(
+                                                                  item.intercom
+                                                                )
+                                                              }
+                                                            }
+                                                          )
+                                                        ],
+                                                        1
+                                                      )
+                                                    ],
+                                                    1
+                                                  )
+                                                : _vm._e(),
+                                              _vm._v(" "),
+                                              item.mobile !== null
+                                                ? _c(
+                                                    "v-list-item",
+                                                    [
+                                                      _c(
+                                                        "v-list-item-icon",
+                                                        [
+                                                          _c("v-icon", [
+                                                            _vm._v(
+                                                              "mdi-cellphone"
+                                                            )
+                                                          ])
+                                                        ],
+                                                        1
+                                                      ),
+                                                      _vm._v(" "),
+                                                      _c(
+                                                        "v-list-item-content",
+                                                        [
+                                                          _c(
+                                                            "v-list-item-title",
+                                                            {
+                                                              domProps: {
+                                                                textContent: _vm._s(
+                                                                  item.mobile
+                                                                )
+                                                              }
+                                                            }
+                                                          )
+                                                        ],
+                                                        1
+                                                      )
+                                                    ],
+                                                    1
+                                                  )
+                                                : _vm._e(),
+                                              _vm._v(" "),
+                                              item.tel !== null
+                                                ? _c(
+                                                    "v-list-item",
+                                                    [
+                                                      _c(
+                                                        "v-list-item-icon",
+                                                        [
+                                                          _c("v-icon", [
+                                                            _vm._v("mdi-phone")
+                                                          ])
+                                                        ],
+                                                        1
+                                                      ),
+                                                      _vm._v(" "),
+                                                      _c(
+                                                        "v-list-item-content",
+                                                        [
+                                                          _c(
+                                                            "v-list-item-title",
+                                                            {
+                                                              domProps: {
+                                                                textContent: _vm._s(
+                                                                  item.tel
+                                                                )
+                                                              }
+                                                            }
+                                                          )
+                                                        ],
+                                                        1
+                                                      )
+                                                    ],
+                                                    1
+                                                  )
+                                                : _vm._e(),
+                                              _vm._v(" "),
+                                              _c(
+                                                "a",
+                                                {
+                                                  attrs: {
+                                                    href: "mailto:" + item.email
+                                                  }
+                                                },
+                                                [
+                                                  item.email !== null
+                                                    ? _c(
+                                                        "v-list-item",
+                                                        [
+                                                          _c(
+                                                            "v-list-item-icon",
+                                                            [
+                                                              _c("v-icon", [
+                                                                _vm._v(
+                                                                  "mdi-email"
+                                                                )
+                                                              ])
+                                                            ],
+                                                            1
+                                                          ),
+                                                          _vm._v(" "),
+                                                          _c(
+                                                            "v-list-item-content",
+                                                            [
+                                                              _c(
+                                                                "v-list-item-title",
+                                                                {
+                                                                  domProps: {
+                                                                    textContent: _vm._s(
+                                                                      item.email
+                                                                    )
+                                                                  }
+                                                                }
+                                                              )
+                                                            ],
+                                                            1
+                                                          )
+                                                        ],
+                                                        1
+                                                      )
+                                                    : _vm._e()
+                                                ],
+                                                1
+                                              ),
+                                              _vm._v(" "),
+                                              item.dob !== null
+                                                ? _c(
+                                                    "v-list-item",
+                                                    [
+                                                      _c(
+                                                        "v-list-item-icon",
+                                                        [
+                                                          _c("v-icon", [
+                                                            _vm._v(
+                                                              "mdi-calendar-heart"
+                                                            )
+                                                          ])
+                                                        ],
+                                                        1
+                                                      ),
+                                                      _vm._v(" "),
+                                                      _c(
+                                                        "v-list-item-content",
+                                                        [
+                                                          _c(
+                                                            "v-list-item-title",
+                                                            {
+                                                              domProps: {
+                                                                textContent: _vm._s(
+                                                                  item.dob
+                                                                )
+                                                              }
+                                                            }
+                                                          )
+                                                        ],
+                                                        1
+                                                      )
+                                                    ],
+                                                    1
+                                                  )
+                                                : _vm._e(),
+                                              _vm._v(" "),
+                                              _c(
+                                                "a",
+                                                {
+                                                  attrs: {
+                                                    href: item.web,
+                                                    target: "_blank"
+                                                  }
+                                                },
+                                                [
+                                                  item.web !== null
+                                                    ? _c(
+                                                        "v-list-item",
+                                                        [
+                                                          _c(
+                                                            "v-list-item-icon",
+                                                            [
+                                                              _c("v-icon", [
+                                                                _vm._v(
+                                                                  "mdi-web"
+                                                                )
+                                                              ])
+                                                            ],
+                                                            1
+                                                          ),
+                                                          _vm._v(" "),
+                                                          _c(
+                                                            "v-list-item-content",
+                                                            [
+                                                              _c(
+                                                                "v-list-item-title",
+                                                                {
+                                                                  domProps: {
+                                                                    textContent: _vm._s(
+                                                                      item.web
+                                                                    )
+                                                                  }
+                                                                }
+                                                              )
+                                                            ],
+                                                            1
+                                                          )
+                                                        ],
+                                                        1
+                                                      )
+                                                    : _vm._e()
+                                                ],
+                                                1
+                                              ),
+                                              _vm._v(" "),
+                                              item.address !== null
+                                                ? _c(
+                                                    "v-list-item",
+                                                    [
+                                                      _c(
+                                                        "v-list-item-icon",
+                                                        [
+                                                          _c("v-icon", [
+                                                            _vm._v(
+                                                              "mdi-map-marker"
+                                                            )
+                                                          ])
+                                                        ],
+                                                        1
+                                                      ),
+                                                      _vm._v(" "),
+                                                      _c(
+                                                        "v-list-item-content",
+                                                        [
+                                                          _c(
+                                                            "v-list-item-title",
+                                                            {
+                                                              domProps: {
+                                                                textContent: _vm._s(
+                                                                  item.address
+                                                                )
+                                                              }
+                                                            }
+                                                          )
+                                                        ],
+                                                        1
+                                                      )
+                                                    ],
+                                                    1
+                                                  )
+                                                : _vm._e()
+                                            ],
+                                            1
+                                          )
+                                        ],
+                                        1
+                                      )
+                                    ],
+                                    1
+                                  )
                                 ],
                                 1
-                              ),
-                              _vm._v(" "),
-                              _c("v-spacer"),
-                              _vm._v(" "),
-                              _c("v-chip", [
-                                _vm._v(
-                                  "\n                " +
-                                    _vm._s(item.tel) +
-                                    "\n                "
-                                )
-                              ])
+                              )
                             ],
                             1
                           )
@@ -56791,6 +57387,19 @@ var render = function() {
                       )
                     ],
                     1
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "v-btn",
+                    {
+                      attrs: {
+                        text: "",
+                        small: "",
+                        color: "primary",
+                        href: "/contacts"
+                      }
+                    },
+                    [_vm._v("مشاهده لیست تماس")]
                   ),
                   _vm._v(" "),
                   _c(
@@ -56836,445 +57445,479 @@ var render = function() {
                     [
                       _vm._v(" "),
                       _c(
-                        "v-card",
+                        "form",
+                        {
+                          on: {
+                            submit: function($event) {
+                              $event.preventDefault()
+                              return _vm.addContact($event)
+                            }
+                          }
+                        },
                         [
-                          _c("v-card-title", [
-                            _c("h4", [_vm._v("اطلاعات تماس")])
-                          ]),
-                          _vm._v(" "),
                           _c(
-                            "v-card-text",
+                            "v-card",
                             [
+                              _c("v-card-title", [
+                                _c("h4", [_vm._v("اطلاعات تماس")])
+                              ]),
+                              _vm._v(" "),
                               _c(
-                                "v-container",
+                                "v-card-text",
                                 [
                                   _c(
-                                    "v-row",
+                                    "v-container",
                                     [
                                       _c(
-                                        "v-col",
-                                        { attrs: { cols: "12", sm: "6" } },
+                                        "v-row",
                                         [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              rules: _vm.nameRules,
-                                              label: "نام*",
-                                              required: ""
-                                            },
-                                            model: {
-                                              value: _vm.name,
-                                              callback: function($$v) {
-                                                _vm.name = $$v
-                                              },
-                                              expression: "name"
-                                            }
-                                          })
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c(
-                                        "v-col",
-                                        { attrs: { cols: "12", sm: "6" } },
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              label: "سمت / سازمان",
-                                              hint: "برای مثال: واحد فروش"
-                                            },
-                                            model: {
-                                              value: _vm.organization,
-                                              callback: function($$v) {
-                                                _vm.organization = $$v
-                                              },
-                                              expression: "organization"
-                                            }
-                                          })
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c(
-                                        "v-col",
-                                        { attrs: { cols: "12", md: "4" } },
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              rules: _vm.telRules,
-                                              label: "موبایل",
-                                              type: "number"
-                                            },
-                                            model: {
-                                              value: _vm.mobile,
-                                              callback: function($$v) {
-                                                _vm.mobile = $$v
-                                              },
-                                              expression: "mobile"
-                                            }
-                                          })
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c(
-                                        "v-col",
-                                        { attrs: { cols: "12", md: "4" } },
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              rules: _vm.telRules,
-                                              label: "تلفن",
-                                              type: "number"
-                                            },
-                                            model: {
-                                              value: _vm.tel,
-                                              callback: function($$v) {
-                                                _vm.tel = $$v
-                                              },
-                                              expression: "tel"
-                                            }
-                                          })
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _c(
-                                        "v-col",
-                                        { attrs: { cols: "12", md: "4" } },
-                                        [
-                                          _c("v-text-field", {
-                                            attrs: {
-                                              rules: _vm.telRules,
-                                              label: "داخلی",
-                                              type: "number"
-                                            },
-                                            model: {
-                                              value: _vm.intercom,
-                                              callback: function($$v) {
-                                                _vm.intercom = $$v
-                                              },
-                                              expression: "intercom"
-                                            }
-                                          })
-                                        ],
-                                        1
-                                      ),
-                                      _vm._v(" "),
-                                      _vm.more
-                                        ? _c(
-                                            "v-col",
-                                            { attrs: { cols: "12", md: "6" } },
-                                            [
-                                              _c("v-text-field", {
-                                                attrs: {
-                                                  rules: _vm.emailRules,
-                                                  label: "پست الکترونیک",
-                                                  type: "email"
-                                                },
-                                                model: {
-                                                  value: _vm.email,
-                                                  callback: function($$v) {
-                                                    _vm.email = $$v
-                                                  },
-                                                  expression: "email"
-                                                }
-                                              })
-                                            ],
-                                            1
-                                          )
-                                        : _vm._e(),
-                                      _vm._v(" "),
-                                      _vm.more
-                                        ? _c(
-                                            "v-col",
-                                            { attrs: { cols: "12", md: "6" } },
-                                            [
-                                              _c("v-select", {
-                                                attrs: {
-                                                  items: ["سایر", "داخلی"],
-                                                  label: "گروه"
-                                                }
-                                              })
-                                            ],
-                                            1
-                                          )
-                                        : _vm._e(),
-                                      _vm._v(" "),
-                                      _vm.more
-                                        ? _c(
-                                            "v-col",
-                                            { attrs: { cols: "12", md: "6" } },
-                                            [
-                                              _c("v-text-field", {
-                                                attrs: {
-                                                  type: "text",
-                                                  id:
-                                                    "my-custom-editable-input",
-                                                  label: "تاریخ تولد"
-                                                },
-                                                on: {
-                                                  click: function($event) {
-                                                    _vm.show = true
-                                                  }
-                                                },
-                                                model: {
-                                                  value: _vm.date,
-                                                  callback: function($$v) {
-                                                    _vm.date = $$v
-                                                  },
-                                                  expression: "date"
-                                                }
-                                              }),
-                                              _vm._v(" "),
-                                              _c("date-picker", {
-                                                attrs: {
-                                                  format: "jYYYY/jMM/jDD",
-                                                  element:
-                                                    "my-custom-editable-input",
-                                                  editable: true,
-                                                  show: _vm.show,
-                                                  view: "year",
-                                                  type: "date"
-                                                },
-                                                on: {
-                                                  close: function($event) {
-                                                    _vm.show = false
-                                                  }
-                                                },
-                                                model: {
-                                                  value: _vm.date,
-                                                  callback: function($$v) {
-                                                    _vm.date = $$v
-                                                  },
-                                                  expression: "date"
-                                                }
-                                              })
-                                            ],
-                                            1
-                                          )
-                                        : _vm._e(),
-                                      _vm._v(" "),
-                                      _vm.more
-                                        ? _c(
-                                            "v-col",
-                                            { attrs: { cols: "12", md: "6" } },
-                                            [
-                                              _c("v-text-field", {
-                                                attrs: { label: "وبسایت" },
-                                                model: {
-                                                  value: _vm.web,
-                                                  callback: function($$v) {
-                                                    _vm.web = $$v
-                                                  },
-                                                  expression: "web"
-                                                }
-                                              })
-                                            ],
-                                            1
-                                          )
-                                        : _vm._e(),
-                                      _vm._v(" "),
-                                      _vm.more
-                                        ? _c(
-                                            "v-col",
-                                            { attrs: { cols: "12" } },
-                                            [
-                                              _c("v-textarea", {
-                                                attrs: {
-                                                  clearable: "",
-                                                  "clear-icon": "cancel",
-                                                  label: "آدرس",
-                                                  model: "address",
-                                                  rows: "1"
-                                                }
-                                              })
-                                            ],
-                                            1
-                                          )
-                                        : _vm._e(),
-                                      _vm._v(" "),
-                                      _vm.more
-                                        ? _c(
-                                            "v-col",
-                                            { attrs: { cols: "12" } },
-                                            [
-                                              _c("v-textarea", {
-                                                attrs: {
-                                                  clearable: "",
-                                                  "clear-icon": "cancel",
-                                                  label: "توضیحات",
-                                                  model: "note",
-                                                  rows: "2"
-                                                }
-                                              })
-                                            ],
-                                            1
-                                          )
-                                        : _vm._e()
-                                    ],
-                                    1
-                                  )
-                                ],
-                                1
-                              ),
-                              _vm._v(" "),
-                              _c("small", [_vm._v("*ضروری ها ستاره دارد")])
-                            ],
-                            1
-                          ),
-                          _vm._v(" "),
-                          _c(
-                            "v-card-actions",
-                            [
-                              !_vm.more
-                                ? _c(
-                                    "v-btn",
-                                    {
-                                      attrs: {
-                                        color: "secondary darken-1",
-                                        text: ""
-                                      },
-                                      on: {
-                                        click: function($event) {
-                                          _vm.more = !_vm.more
-                                        }
-                                      }
-                                    },
-                                    [
-                                      _c("v-icon", [_vm._v("mdi-chevron-down")])
-                                    ],
-                                    1
-                                  )
-                                : _vm._e(),
-                              _vm._v(" "),
-                              _vm.more
-                                ? _c(
-                                    "v-btn",
-                                    {
-                                      attrs: {
-                                        color: "secondary darken-1",
-                                        text: ""
-                                      },
-                                      on: {
-                                        click: function($event) {
-                                          _vm.more = !_vm.more
-                                        }
-                                      }
-                                    },
-                                    [_c("v-icon", [_vm._v("mdi-chevron-up")])],
-                                    1
-                                  )
-                                : _vm._e(),
-                              _vm._v(" "),
-                              _c("v-spacer"),
-                              _vm._v(" "),
-                              _c(
-                                "v-btn",
-                                {
-                                  attrs: { color: "success", text: "" },
-                                  on: {
-                                    click: function($event) {
-                                      _vm.addDialog = false
-                                    }
-                                  }
-                                },
-                                [
-                                  _c("v-icon", [_vm._v("mdi-content-save")]),
-                                  _vm._v(" ذخیره")
-                                ],
-                                1
-                              ),
-                              _vm._v(" "),
-                              _c(
-                                "v-dialog",
-                                {
-                                  attrs: { persistent: "", "max-width": "290" },
-                                  scopedSlots: _vm._u([
-                                    {
-                                      key: "activator",
-                                      fn: function(ref) {
-                                        var on = ref.on
-                                        return [
                                           _c(
-                                            "v-btn",
-                                            _vm._g(
-                                              {
-                                                attrs: {
-                                                  color: "dark",
-                                                  text: ""
-                                                }
-                                              },
-                                              on
-                                            ),
+                                            "v-col",
+                                            { attrs: { cols: "12", sm: "6" } },
                                             [
-                                              _c("v-icon", [
-                                                _vm._v("mdi-close")
-                                              ])
+                                              _c("v-text-field", {
+                                                attrs: {
+                                                  rules: _vm.nameRules,
+                                                  label: "نام*",
+                                                  required: ""
+                                                },
+                                                model: {
+                                                  value: _vm.name,
+                                                  callback: function($$v) {
+                                                    _vm.name = $$v
+                                                  },
+                                                  expression: "name"
+                                                }
+                                              })
                                             ],
                                             1
-                                          )
-                                        ]
-                                      }
-                                    }
-                                  ]),
-                                  model: {
-                                    value: _vm.confirmDialog,
-                                    callback: function($$v) {
-                                      _vm.confirmDialog = $$v
-                                    },
-                                    expression: "confirmDialog"
-                                  }
-                                },
-                                [
-                                  _vm._v(" "),
-                                  _c(
-                                    "v-card",
-                                    [
-                                      _c(
-                                        "v-card-title",
-                                        { staticClass: "headline" },
-                                        [
-                                          _vm._v(
-                                            "از بستن این پنجره اطمینان دارید؟"
-                                          )
-                                        ]
-                                      ),
-                                      _vm._v(" "),
-                                      _c(
-                                        "v-card-actions",
-                                        [
-                                          _c("v-spacer"),
-                                          _vm._v(" "),
-                                          _c(
-                                            "v-btn",
-                                            {
-                                              attrs: {
-                                                color: "warning darken-1",
-                                                text: ""
-                                              },
-                                              on: {
-                                                click: function($event) {
-                                                  _vm.confirmDialog = false
-                                                }
-                                              }
-                                            },
-                                            [_vm._v("خیر")]
                                           ),
                                           _vm._v(" "),
                                           _c(
-                                            "v-btn",
-                                            {
-                                              attrs: {
-                                                color: "green darken-1",
-                                                text: ""
-                                              },
-                                              on: {
-                                                click: function($event) {
-                                                  _vm.addDialog = false
+                                            "v-col",
+                                            { attrs: { cols: "12", sm: "6" } },
+                                            [
+                                              _c("v-text-field", {
+                                                attrs: {
+                                                  label: "سمت / سازمان",
+                                                  hint: "برای مثال: واحد فروش"
+                                                },
+                                                model: {
+                                                  value: _vm.organization,
+                                                  callback: function($$v) {
+                                                    _vm.organization = $$v
+                                                  },
+                                                  expression: "organization"
                                                 }
-                                              }
-                                            },
-                                            [_vm._v("بله")]
+                                              })
+                                            ],
+                                            1
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-col",
+                                            { attrs: { cols: "12", md: "4" } },
+                                            [
+                                              _c("v-text-field", {
+                                                attrs: {
+                                                  rules: _vm.telRules,
+                                                  label: "موبایل",
+                                                  type: "number"
+                                                },
+                                                model: {
+                                                  value: _vm.mobile,
+                                                  callback: function($$v) {
+                                                    _vm.mobile = $$v
+                                                  },
+                                                  expression: "mobile"
+                                                }
+                                              })
+                                            ],
+                                            1
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-col",
+                                            { attrs: { cols: "12", md: "4" } },
+                                            [
+                                              _c("v-text-field", {
+                                                attrs: {
+                                                  rules: _vm.telRules,
+                                                  label: "تلفن",
+                                                  type: "number"
+                                                },
+                                                model: {
+                                                  value: _vm.tel,
+                                                  callback: function($$v) {
+                                                    _vm.tel = $$v
+                                                  },
+                                                  expression: "tel"
+                                                }
+                                              })
+                                            ],
+                                            1
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-col",
+                                            { attrs: { cols: "12", md: "4" } },
+                                            [
+                                              _c("v-text-field", {
+                                                attrs: {
+                                                  rules: _vm.telRules,
+                                                  label: "داخلی",
+                                                  type: "number"
+                                                },
+                                                model: {
+                                                  value: _vm.intercom,
+                                                  callback: function($$v) {
+                                                    _vm.intercom = $$v
+                                                  },
+                                                  expression: "intercom"
+                                                }
+                                              })
+                                            ],
+                                            1
+                                          ),
+                                          _vm._v(" "),
+                                          _vm.more
+                                            ? _c(
+                                                "v-col",
+                                                {
+                                                  attrs: { cols: "12", md: "6" }
+                                                },
+                                                [
+                                                  _c("v-text-field", {
+                                                    attrs: {
+                                                      rules: _vm.emailRules,
+                                                      label: "پست الکترونیک",
+                                                      type: "email"
+                                                    },
+                                                    model: {
+                                                      value: _vm.email,
+                                                      callback: function($$v) {
+                                                        _vm.email = $$v
+                                                      },
+                                                      expression: "email"
+                                                    }
+                                                  })
+                                                ],
+                                                1
+                                              )
+                                            : _vm._e(),
+                                          _vm._v(" "),
+                                          _vm.more
+                                            ? _c(
+                                                "v-col",
+                                                {
+                                                  attrs: { cols: "12", md: "6" }
+                                                },
+                                                [
+                                                  _c("v-select", {
+                                                    attrs: {
+                                                      items: ["سایر", "داخلی"],
+                                                      label: "گروه"
+                                                    }
+                                                  })
+                                                ],
+                                                1
+                                              )
+                                            : _vm._e(),
+                                          _vm._v(" "),
+                                          _vm.more
+                                            ? _c(
+                                                "v-col",
+                                                {
+                                                  attrs: { cols: "12", md: "6" }
+                                                },
+                                                [
+                                                  _c("v-text-field", {
+                                                    attrs: {
+                                                      type: "text",
+                                                      id:
+                                                        "my-custom-editable-input",
+                                                      label: "تاریخ تولد"
+                                                    },
+                                                    on: {
+                                                      click: function($event) {
+                                                        _vm.show = true
+                                                      }
+                                                    },
+                                                    model: {
+                                                      value: _vm.date,
+                                                      callback: function($$v) {
+                                                        _vm.date = $$v
+                                                      },
+                                                      expression: "date"
+                                                    }
+                                                  }),
+                                                  _vm._v(" "),
+                                                  _c("date-picker", {
+                                                    attrs: {
+                                                      format: "jYYYY/jMM/jDD",
+                                                      element:
+                                                        "my-custom-editable-input",
+                                                      editable: true,
+                                                      show: _vm.show,
+                                                      view: "year",
+                                                      type: "date"
+                                                    },
+                                                    on: {
+                                                      close: function($event) {
+                                                        _vm.show = false
+                                                      }
+                                                    },
+                                                    model: {
+                                                      value: _vm.date,
+                                                      callback: function($$v) {
+                                                        _vm.date = $$v
+                                                      },
+                                                      expression: "date"
+                                                    }
+                                                  })
+                                                ],
+                                                1
+                                              )
+                                            : _vm._e(),
+                                          _vm._v(" "),
+                                          _vm.more
+                                            ? _c(
+                                                "v-col",
+                                                {
+                                                  attrs: { cols: "12", md: "6" }
+                                                },
+                                                [
+                                                  _c("v-text-field", {
+                                                    attrs: { label: "وبسایت" },
+                                                    model: {
+                                                      value: _vm.web,
+                                                      callback: function($$v) {
+                                                        _vm.web = $$v
+                                                      },
+                                                      expression: "web"
+                                                    }
+                                                  })
+                                                ],
+                                                1
+                                              )
+                                            : _vm._e(),
+                                          _vm._v(" "),
+                                          _vm.more
+                                            ? _c(
+                                                "v-col",
+                                                { attrs: { cols: "12" } },
+                                                [
+                                                  _c("v-textarea", {
+                                                    attrs: {
+                                                      clearable: "",
+                                                      "clear-icon": "cancel",
+                                                      label: "آدرس",
+                                                      model: "address",
+                                                      rows: "1"
+                                                    }
+                                                  })
+                                                ],
+                                                1
+                                              )
+                                            : _vm._e(),
+                                          _vm._v(" "),
+                                          _vm.more
+                                            ? _c(
+                                                "v-col",
+                                                { attrs: { cols: "12" } },
+                                                [
+                                                  _c("v-textarea", {
+                                                    attrs: {
+                                                      clearable: "",
+                                                      "clear-icon":
+                                                        "mdi-cancel",
+                                                      label: "توضیحات",
+                                                      model: "note",
+                                                      rows: "2"
+                                                    }
+                                                  })
+                                                ],
+                                                1
+                                              )
+                                            : _vm._e()
+                                        ],
+                                        1
+                                      )
+                                    ],
+                                    1
+                                  ),
+                                  _vm._v(" "),
+                                  _c("small", [_vm._v("*ضروری ها ستاره دارد")])
+                                ],
+                                1
+                              ),
+                              _vm._v(" "),
+                              _c(
+                                "v-card-actions",
+                                [
+                                  !_vm.more
+                                    ? _c(
+                                        "v-btn",
+                                        {
+                                          attrs: {
+                                            color: "secondary darken-1",
+                                            text: ""
+                                          },
+                                          on: {
+                                            click: function($event) {
+                                              _vm.more = !_vm.more
+                                            }
+                                          }
+                                        },
+                                        [
+                                          _c("v-icon", [
+                                            _vm._v("mdi-chevron-down")
+                                          ])
+                                        ],
+                                        1
+                                      )
+                                    : _vm._e(),
+                                  _vm._v(" "),
+                                  _vm.more
+                                    ? _c(
+                                        "v-btn",
+                                        {
+                                          attrs: {
+                                            color: "secondary darken-1",
+                                            text: ""
+                                          },
+                                          on: {
+                                            click: function($event) {
+                                              _vm.more = !_vm.more
+                                            }
+                                          }
+                                        },
+                                        [
+                                          _c("v-icon", [
+                                            _vm._v("mdi-chevron-up")
+                                          ])
+                                        ],
+                                        1
+                                      )
+                                    : _vm._e(),
+                                  _vm._v(" "),
+                                  _c("v-spacer"),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-btn",
+                                    {
+                                      attrs: {
+                                        type: "submit",
+                                        color: "success",
+                                        text: ""
+                                      },
+                                      on: { click: function($event) {} }
+                                    },
+                                    [
+                                      _c("v-icon", [
+                                        _vm._v("mdi-content-save")
+                                      ]),
+                                      _vm._v(" ذخیره")
+                                    ],
+                                    1
+                                  ),
+                                  _vm._v(" "),
+                                  _c(
+                                    "v-dialog",
+                                    {
+                                      attrs: {
+                                        persistent: "",
+                                        "max-width": "290"
+                                      },
+                                      scopedSlots: _vm._u([
+                                        {
+                                          key: "activator",
+                                          fn: function(ref) {
+                                            var on = ref.on
+                                            return [
+                                              _c(
+                                                "v-btn",
+                                                _vm._g(
+                                                  {
+                                                    attrs: {
+                                                      color: "dark",
+                                                      text: ""
+                                                    }
+                                                  },
+                                                  on
+                                                ),
+                                                [
+                                                  _c("v-icon", [
+                                                    _vm._v("mdi-close")
+                                                  ])
+                                                ],
+                                                1
+                                              )
+                                            ]
+                                          }
+                                        }
+                                      ]),
+                                      model: {
+                                        value: _vm.confirmDialog,
+                                        callback: function($$v) {
+                                          _vm.confirmDialog = $$v
+                                        },
+                                        expression: "confirmDialog"
+                                      }
+                                    },
+                                    [
+                                      _vm._v(" "),
+                                      _c(
+                                        "v-card",
+                                        [
+                                          _c(
+                                            "v-card-title",
+                                            { staticClass: "headline" },
+                                            [
+                                              _vm._v(
+                                                "از بستن این پنجره اطمینان دارید؟"
+                                              )
+                                            ]
+                                          ),
+                                          _vm._v(" "),
+                                          _c(
+                                            "v-card-actions",
+                                            [
+                                              _c("v-spacer"),
+                                              _vm._v(" "),
+                                              _c(
+                                                "v-btn",
+                                                {
+                                                  attrs: {
+                                                    color: "warning darken-1",
+                                                    text: ""
+                                                  },
+                                                  on: {
+                                                    click: function($event) {
+                                                      _vm.confirmDialog = false
+                                                    }
+                                                  }
+                                                },
+                                                [_vm._v("خیر")]
+                                              ),
+                                              _vm._v(" "),
+                                              _c(
+                                                "v-btn",
+                                                {
+                                                  attrs: {
+                                                    color: "green darken-1",
+                                                    text: ""
+                                                  },
+                                                  on: {
+                                                    click: function($event) {
+                                                      _vm.addDialog = false
+                                                    }
+                                                  }
+                                                },
+                                                [_vm._v("بله")]
+                                              )
+                                            ],
+                                            1
                                           )
                                         ],
                                         1
@@ -57290,6 +57933,43 @@ var render = function() {
                           )
                         ],
                         1
+                      )
+                    ]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "v-snackbar",
+                    {
+                      attrs: { timeout: _vm.timeout, color: "success" },
+                      model: {
+                        value: _vm.snackbar,
+                        callback: function($$v) {
+                          _vm.snackbar = $$v
+                        },
+                        expression: "snackbar"
+                      }
+                    },
+                    [
+                      _vm._v(
+                        "\n                        " +
+                          _vm._s(_vm.text) +
+                          "\n                        "
+                      ),
+                      _c(
+                        "v-btn",
+                        {
+                          attrs: { color: "light", text: "" },
+                          on: {
+                            click: function($event) {
+                              _vm.snackbar = false
+                            }
+                          }
+                        },
+                        [
+                          _vm._v(
+                            "\n                            باشه\n                        "
+                          )
+                        ]
                       )
                     ],
                     1

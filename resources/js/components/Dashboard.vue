@@ -99,7 +99,7 @@
             temporary
             style="width: 500px"
         >
-            <contact user></contact>
+            <contact :user="user"></contact>
 
         </v-navigation-drawer>
 

@@ -11,11 +11,35 @@
 |
 */
 
+use App\Activity;
+use App\Notifications\newUserRegistered;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
+
 Route::get('/', function () {
     return view('welcome');
 });
 
 Auth::routes();
 
-Route::get('/dashboard', 'DashboardController@index')->name('dashboard');
-Route::get('/home', 'HomeController@index')->name('home');
+//Route::get('/home', 'HomeController@index')->name('home');
+Route::get('/home',function (){
+    return redirect('dashboard');
+});
+Route::get('/markAsRead', function (){
+    auth()->user()->unReadNotifications->markAsRead();
+    return redirect()->back();
+});
+//Route::get('/{any}', 'DashboardController@index')->where('any' , 'dashboard');
+//Route::get('/dashboard/{any}', 'DashboardController@index')->where('any' , '.*');
+Route::get('/dashboard/{vue_capture?}', function () {
+    $user = Auth::user();
+    $activity = new Activity([
+        'note'   => 'ورود',
+        'user_id'   => $user->id,
+        'url'   => 'dashboard',
+    ]);
+    $activity->save();
+//    Notification::send($user, new newUserRegistered($activity));
+    return view('dashboard');
+})->where('vue_capture', '[\/\w\.-]*');

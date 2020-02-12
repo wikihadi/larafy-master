@@ -16,12 +16,15 @@
             .v-application .headline, .v-application .title{
                 font-family: 'Vazir', sans-serif !important;
             }
+            .v-application a:hover {
+                text-decoration: none !important;
+            }
         </style>
     </head>
     <body>
-        <div id="app">
-            <dashboard v-bind:user="{{ Auth::user() }}"></dashboard>
-        </div>
+    <div id="app">
+        <dashboard v-bind:user="{{ Auth::user() }}" :unreadnotifications="{{auth()->user()->unReadNotifications}}" :readnotifications="{{auth()->user()->readNotifications}}"></dashboard>
+    </div>
         <script src="/js/app.js"></script>
     </body>
 </html>

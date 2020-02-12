@@ -5,7 +5,7 @@
                 <v-toolbar flat>
                     <v-text-field
                     class="m-3 mt-5"
-                    v-model="keyword"
+                    v-model="name"
                     placeholder="جستجوی نام"
                     clearable
                     hint="برای مثال: محمد حریری"
@@ -13,7 +13,7 @@
                     ></v-text-field>
                 </v-toolbar>
                 <v-container
-                    style="max-height: 90vh; min-height: 400px;"
+                    style="height: 50vh"
                     class="overflow-y-auto"
                     dark
                 >
@@ -143,7 +143,8 @@
 
                     </v-list-item-group>
                     </v-list>
-                    <v-btn text small color="primary" href="/contacts">مشاهده لیست تماس</v-btn>
+                    <router-link to="/dashboard/contact-list">
+                    <v-btn text small color="primary">مشاهده لیست تماس</v-btn></router-link>
                     <!--// دیالوگ افزودن آیتم-->
                     <v-dialog v-model="addDialog" persistent max-width="600px">
                         <template v-slot:activator="{ on }">
@@ -155,7 +156,7 @@
                                 right
                                 color="indigo"
                                 v-on="on"
-                            >
+                                >
                                 <v-icon>mdi-plus</v-icon>
                             </v-btn>
                         </template>
@@ -395,6 +396,7 @@
                 formData.append('address', this.address);
                 formData.append('note', this.note);
                 formData.append('user_id', this.user.id);
+                formData.append('user_name', this.user.name);
 
 
 
@@ -417,7 +419,7 @@
         computed: {
             filteredList() {
                 return this.items.filter((intercom) => {
-                    return this.keyword.toLowerCase().split(' ').every(v => intercom.name.toLowerCase().includes(v));
+                    return this.name.toLowerCase().split(' ').every(v => intercom.name.toLowerCase().includes(v));
                 });
             },
         }

@@ -3,24 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Activity;
-use App\Contact;
-use App\User;
-use App\Notifications\newUserRegistered;
-//use http\Client\Curl\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Notification;
+use PhpParser\Node\Stmt\Return_;
 
-class ContactController extends Controller
+class ActivityController extends Controller
 {
-
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
+    public function index()
+    {
+        //
+    }
+
     public function read()
     {
-        return Contact::all();
+        $activities = Activity::where('code', '>' , 0)->with('user')->latest()->get();
+        foreach ($activities as $key => $loop) {
+            $loop->jd = verta($loop->updated_at)->formatJalaliDatetime();
+            $loop->diff = verta($loop->updated_at)->formatDifference();
+        }
+        return $activities;
     }
 
     /**
@@ -28,20 +33,9 @@ class ContactController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function add(Request $request){
-        $contact = Contact::create($request->all());
-
-        $activity = new Activity([
-            'code'    => 1501,
-            'note'   => 'افزودن شماره تماس',
-            'user_id'   => $request->user_id,
-            'user_name'   => $request->user_name,
-            'contact_id'   => $contact->id,
-        ]);
-        $activity->save();
-        $user = User::find($request->user_id);
-        Notification::send($user, new newUserRegistered($activity));
-        return Contact::all();
+    public function create()
+    {
+        //
     }
 
     /**
@@ -58,10 +52,10 @@ class ContactController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Contact  $contact
+     * @param  \App\Activity  $activity
      * @return \Illuminate\Http\Response
      */
-    public function show(Contact $contact)
+    public function show(Activity $activity)
     {
         //
     }
@@ -69,10 +63,10 @@ class ContactController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Contact  $contact
+     * @param  \App\Activity  $activity
      * @return \Illuminate\Http\Response
      */
-    public function edit(Contact $contact)
+    public function edit(Activity $activity)
     {
         //
     }
@@ -81,10 +75,10 @@ class ContactController extends Controller
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Contact  $contact
+     * @param  \App\Activity  $activity
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Contact $contact)
+    public function update(Request $request, Activity $activity)
     {
         //
     }
@@ -92,10 +86,10 @@ class ContactController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Contact  $contact
+     * @param  \App\Activity  $activity
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Contact $contact)
+    public function destroy(Activity $activity)
     {
         //
     }

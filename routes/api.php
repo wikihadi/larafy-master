@@ -22,3 +22,10 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::post('contact/add','ContactController@add');
 Route::get('contact/read','ContactController@read');
 
+//Activity Apis
+Route::get('activity/read','ActivityController@read');
+
+//Notification Api
+Route::get('notification/read','NotificationController@read');
+Route::get('notification/markAllAsRead','NotificationController@markAllAsRead');
+
